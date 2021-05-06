@@ -9,8 +9,8 @@ const reverseIp = promisify(reverse);
 // Webhook should only be called from forwarding server
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    res.statusCode = 405;
-    res.end();
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} not allowed`);
     return;
   }
   const connectingIp: string | string[] | undefined = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
@@ -21,11 +21,9 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     console.error(err);
   }
   if (!hostnames || !hostnames.some((hostname) => /forwardemail\.net$/g.test(hostname))) {
-    res.statusCode = 405;
-    res.end();
+    res.status(403).end();
     return;
   }
   console.log(req.body);
-  res.statusCode = 200;
-  res.end()
+  res.status(200).end();
 }
