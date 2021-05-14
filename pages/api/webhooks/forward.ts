@@ -24,13 +24,14 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(500).end('Internal server error');
     return;
   }
+  // Parse the hostname from the remote address provided
   let hostnames: string[] = [];
   try {
     hostnames = await reverseIp(remoteAddress as string);
   } catch (err) {
     console.error(err);
   }
-  // Authorize the forwarding service to trigger this webhook
+  // Only authorize the forwarding service to trigger this webhook
   if (!hostnames || !hostnames.some((hostname) => /forwardemail\.net$/g.test(hostname))) {
     res.status(403).end();
     return;
