@@ -37,12 +37,11 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   }
   // Parse incoming mail
   const mail: ParsedMail = req.body;
-  const to: string = mail.to.text;
   console.log(mail);
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({
-      to,
+      to: mail.to.text,
       from: mail.from.text,
       date: new Date(mail.date),
       subject: mail.subject,
