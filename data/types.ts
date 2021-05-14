@@ -14,10 +14,13 @@ export interface Mailbox {
 
 export interface MailItem {
   readonly from: string,
-  readonly to?: string,
+  readonly to: string,
   readonly date: Date,
   readonly subject: string,
-  readonly body: string,
+  readonly body: {
+    plain: string,
+    html: string
+  },
   readonly attachments: string[]
 };
 

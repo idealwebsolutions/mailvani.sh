@@ -86,6 +86,7 @@ export async function pushIfExists (client: Client, mail: MailItem): Promise<voi
               Uint8Array.from(secret as Array<number>), 
               {
                 from: mail.from,
+                to: mail.to,
                 date: mail.date.toISOString(),
                 subject: mail.subject,
                 body: mail.body,

@@ -46,7 +46,10 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
       from: mail.from.text,
       date: new Date(mail.date),
       subject: mail.subject,
-      body: mail.text,
+      body: {
+        plain: mail.text,
+        html: mail.textAsHtml,
+      },
       attachments: mail.attachments
     }) as MailItem);
   } catch (err) {
