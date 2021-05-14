@@ -15,7 +15,7 @@ import {
 
 import {
   list,
-  pushIfExists,
+  push,
   empty
 } from './queries/mail';
 
@@ -45,7 +45,7 @@ class QueryExecutor {
 
   // Mail-specific queries
   public async processMail (mail: MailItem): Promise<void> {
-    await pushIfExists(this._client, mail);
+    await push(this._client, mail);
   }
 
   public async listMail (key: string): Promise<Array<MailItem>> {

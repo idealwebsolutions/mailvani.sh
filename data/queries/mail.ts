@@ -58,7 +58,7 @@ export async function list (client: Client, alias: string, size: number = 50): P
   return response.data.map((mail: QueryResult) => mail.data.body);
 }
 // Pushes mail to mailbox
-export async function pushIfExists (client: Client, mail: MailItem): Promise<void> {
+export async function push (client: Client, mail: MailItem): Promise<void> {
   const computedAlias: string = computeShasum(mail.to, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(ms('30m'), 'ms'); // default to 30m mail item expiration
   const secret = await client.query(
@@ -71,33 +71,27 @@ export async function pushIfExists (client: Client, mail: MailItem): Promise<voi
     )
   );
   const response: Response<object> = await client.query(
-    If(
-      Exists(
-        Match(Index('known_aliases'), computedAlias)
-      ),
-      Create(
-        Collection('mail'),
-        {
-          data: {
-            header: {
-              to: Select('ref', Get(Match(Index('known_aliases'), computedAlias))),
-            },
-            body: encryptMessage(
-              Uint8Array.from(secret as Array<number>), 
-              {
-                from: mail.from,
-                to: mail.to,
-                date: mail.date.toISOString(),
-                subject: mail.subject,
-                body: mail.body,
-                attachments: mail.attachments,
-              }
-            )
+    Create(
+      Collection('mail'),
+      {
+        data: {
+          header: {
+            to: Select('ref', Get(Match(Index('known_aliases'), computedAlias))),
           },
-          ttl: ToTime(currentTimestamp.toDate().toISOString())
-        }
-      ),
-      null,
+          body: encryptMessage(
+            Uint8Array.from(secret as Array<number>), 
+            {
+              from: mail.from,
+              to: mail.to,
+              date: mail.date.toISOString(),
+              subject: mail.subject,
+              body: mail.body,
+              attachments: mail.attachments,
+            }
+          )
+        },
+        ttl: ToTime(currentTimestamp.toDate().toISOString())
+      }
     )
   );
   console.log(response);

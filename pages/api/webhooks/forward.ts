@@ -38,11 +38,20 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   }
   // Parse incoming mail
   const mail: ParsedMail = req.body;
+  const to: string = mail.to.text;
   console.log(mail);
+  // Check mailbox exists
+  const mailboxExists = await queryExecutor.checkMailboxExists(to);
+  if (!mailboxExists) {
+    res.status(404).json({
+      error: 'Mailbox does not exist'
+    });
+    return;
+  }
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({
-      to: mail.to.text,
+      to,
       from: mail.from.text,
       date: new Date(mail.date),
       subject: mail.subject,
