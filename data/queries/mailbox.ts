@@ -37,6 +37,9 @@ if (!SALT) {
 
 // Creates a new mailbox with a given expiration date
 export async function create (client: Client, domain: string, expiration: number, publicKey: Uint8Array): Promise<Mailbox> {
+  if (!(publicKey instanceof Uint8Array) || publicKey.length !== 32) {
+    throw new Error('Invalid key size');
+  }
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const id: string = await createSafeIdentifier(12);
   const alias: string = `${id}@${domain}`;
