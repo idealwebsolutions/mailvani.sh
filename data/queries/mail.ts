@@ -4,6 +4,8 @@ import {
 } from 'faunadb';
 import dayjs from 'dayjs';
 import ms from 'ms';
+import { JSDOM, DOMWindow } from 'jsdom';
+import createDOMPurify from 'dompurify';
 
 import {
   encryptMessage,
@@ -40,7 +42,12 @@ if (!SALT) {
   throw new Error('GLOBAL_SALT is required');
 }
 
+const window: DOMWindow = new JSDOM('').window;
+// @ts-expect-error
+const DOMPurify = createDOMPurify(window);
+
 // Lists all mail in the mailbox
+// 2 TCO + 2 TRO
 export async function list (client: Client, alias: string, size: number = 50): Promise<Array<MailItem>> {
   const computedAlias = computeShasum(alias, SALT);
   const response: Response<object> = await client.query(
@@ -58,7 +65,15 @@ export async function list (client: Client, alias: string, size: number = 50): P
   return response.data.map((mail: QueryResult) => mail.data.body);
 }
 // Pushes mail to mailbox
+// (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, mail: MailItem): Promise<void> {
+  // Sanitize html body
+  const html: string = DOMPurify.sanitize(mail.body.html);
+  console.log(html);
+  // Overwrite existing html body
+  const body = Object.assign({}, mail.body, {
+    html,
+  });
   const computedAlias: string = computeShasum(mail.to, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(ms('30m'), 'ms'); // default to 30m mail item expiration
   const secret = await client.query(
@@ -85,7 +100,7 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
               to: mail.to,
               date: mail.date.toISOString(),
               subject: mail.subject,
-              body: mail.body,
+              body,
               attachments: mail.attachments,
             }
           )
@@ -97,6 +112,7 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
   console.log(response);
 };
 // Deletes all mail associated with alias
+// 2 TCO + 2 TRO
 export async function empty (client: Client, alias: string): Promise<void> {
   const response: Response<object> = await client.query(
     Foreach(
