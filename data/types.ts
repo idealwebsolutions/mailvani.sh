@@ -1,8 +1,8 @@
 export type Response<T> = any;
 
 export interface QueryResult {
-  readonly ref: any,
   readonly data: MailItem,
+  readonly ref: any,
   readonly ttl?: any
 }
 
@@ -12,8 +12,13 @@ export interface Mailbox {
   readonly sharedKey?: Array<number>,
 };
 
+interface From {
+  name: string,
+  address: string
+}
+
 export interface MailItem {
-  readonly from: string,
+  readonly from: Array<From>,
   readonly to: string,
   readonly date: Date,
   readonly subject: string,
@@ -38,7 +43,7 @@ export interface ParsedMail {
     text: string,
   },
   readonly from: {
-    value: string[],
+    value: From[],
     html: string,
     text: string,
   }

@@ -1,13 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { reverse } from 'dns';
+import { promisify } from 'util';
 
 import queryExecutor from '../../../data/query';
 import { 
   MailItem, 
   ParsedMail 
 } from '../../../data/types';
-
-import { reverse } from 'dns';
-import { promisify } from 'util';
 
 const reverseIp: Function = promisify(reverse);
 
@@ -52,7 +51,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   try {
     await queryExecutor.processMail(Object.freeze({
       to,
-      from: mail.from.text,
+      from: mail.from.value,
       date: new Date(mail.date),
       subject: mail.subject,
       body: {
