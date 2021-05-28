@@ -12,13 +12,13 @@ export interface Mailbox {
   readonly sharedKey?: Array<number>,
 };
 
-interface From {
+interface NameAddressPair {
   name: string,
   address: string
 }
 
 export interface MailItem {
-  readonly from: Array<From>,
+  readonly from: Array<NameAddressPair>,
   readonly to: string,
   readonly date: Date,
   readonly subject: string,
@@ -38,12 +38,12 @@ export interface ParsedMail {
   readonly subject: string,
   readonly date: string,
   readonly to: {
-    value: string[],
+    value: Array<NameAddressPair>,
     html: string,
     text: string,
   },
   readonly from: {
-    value: From[],
+    value: Array<NameAddressPair>,
     html: string,
     text: string,
   }
