@@ -56,7 +56,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
       subject: mail.subject,
       body: {
         plain: mail.text,
-        html: mail.textAsHtml,
+        html: mail.html,
       },
       attachments: mail.attachments
     }) as MailItem);
