@@ -12,7 +12,7 @@ export interface Mailbox {
   readonly sharedKey?: Array<number>,
 };
 
-interface NameAddressPair {
+export interface NameAddressPair {
   name: string,
   address: string
 }
@@ -23,8 +23,8 @@ export interface MailItem {
   readonly date: Date,
   readonly subject: string,
   readonly body: {
-    plain: string,
-    html: string
+    readonly plain: string,
+    readonly html: boolean | string,
   },
   readonly attachments: string[]
 };
@@ -48,6 +48,6 @@ export interface ParsedMail {
     text: string,
   }
   readonly messageId: string,
-  readonly html: boolean,
+  readonly html: boolean | string,
   readonly raw: Buffer
 };
