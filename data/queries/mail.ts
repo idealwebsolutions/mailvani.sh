@@ -68,7 +68,7 @@ export async function list (client: Client, alias: string, size: number = 50): P
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, mail: MailItem): Promise<void> {
   // Sanitize html body
-  const html: string = DOMPurify.sanitize(mail.body.html);
+  const html: string = DOMPurify.sanitize(mail.body.html as string);
   console.log(html);
   // Overwrite existing html body
   const body = Object.assign({}, mail.body, {
