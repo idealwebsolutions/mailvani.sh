@@ -114,10 +114,11 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
 // Deletes all mail associated with alias
 // 2 TCO + 2 TRO
 export async function empty (client: Client, alias: string): Promise<void> {
+  const computedAlias: string = computeShasum(alias, SALT);
   const response: Response<object> = await client.query(
     Foreach(
       Paginate(
-        Match(Index('get_associated'), Select('ref', Get(Match(Index('known_aliases', alias)))))
+        Match(Index('get_associated'), Select('ref', Get(Match(Index('known_aliases', computedAlias)))))
       ),
       Lambda('ref', Delete(Var('ref')))
     )

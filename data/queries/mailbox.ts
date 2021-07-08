@@ -36,6 +36,7 @@ if (!SALT) {
 }
 
 // Creates a new mailbox with a given expiration date
+// 1 TWO
 export async function create (client: Client, domain: string, expiration: number, publicKey: Uint8Array): Promise<Mailbox> {
   if (!(publicKey instanceof Uint8Array) || publicKey.length !== 32) {
     throw new Error('Invalid key size');
@@ -68,8 +69,9 @@ export async function create (client: Client, domain: string, expiration: number
   return mailbox;
 };
 // Check to see if mailbox exists in store
-export async function exists (client: Client, plainAlias: string): Promise<boolean> {
-  const computedAlias: string = computeShasum(plainAlias, SALT);
+// 1 TCO + 1 TRO
+export async function exists (client: Client, alias: string): Promise<boolean> {
+  const computedAlias: string = computeShasum(alias, SALT);
   const response: Response<boolean> = await client.query(
     Exists(
       Match(Index('known_aliases'), computedAlias)
@@ -79,13 +81,15 @@ export async function exists (client: Client, plainAlias: string): Promise<boole
   return response;
 };
 // Extends mailbox ttl by expiration
+// 1 TCO + 1 TWO
 export async function extend (client: Client, expiration: number, alias: string): Promise<void> {
+  const computedAlias: string = computeShasum(alias, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const response: Response<object> = await client.query(
     Update(
       Select('ref',
         Get(
-          Match(Index('known_aliases'), alias)
+          Match(Index('known_aliases'), computedAlias)
         )
       ),
       {
@@ -96,12 +100,14 @@ export async function extend (client: Client, expiration: number, alias: string)
   console.log(response);
 }
 // Destroys an existing mailbox
+// 1 TCO + ?
 export async function drop (client: Client, alias: string): Promise<void> {
+  const computedAlias: string = computeShasum(alias, SALT);
   const response: Response<object> = await client.query(
     Delete(
       Select('ref', 
         Get(
-          Match(Index('known_aliases'), alias)
+          Match(Index('known_aliases'), computedAlias)
         )
       )
     )
