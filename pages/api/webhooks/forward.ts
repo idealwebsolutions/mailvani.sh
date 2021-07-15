@@ -17,6 +17,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).end(`Method ${req.method} not allowed`);
     return;
   }
+  console.log(res);
   // Reveal remote address of webhook source 
   const remoteAddress: string | string[] | undefined = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
   if (!remoteAddress) {
@@ -39,8 +40,8 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   }
   // Parse incoming mail
   const mail: ParsedMail = req.body;
-  const to: string = mail.to.text;
   console.log(mail);
+  const to: string = mail.to.text;
   // Check mailbox exists
   const mailboxExists = await queryExecutor.checkMailboxExists(to);
   if (!mailboxExists) {
