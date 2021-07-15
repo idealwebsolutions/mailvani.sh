@@ -20,6 +20,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   // Reveal remote address of webhook source 
   const remoteAddress: string | string[] | undefined = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
   if (!remoteAddress) {
+    console.log('unable to find real remote address');
     res.status(500).end('Internal server error');
     return;
   }
@@ -32,6 +33,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   }
   // Only authorize the forwarding service to trigger this webhook
   if (!hostnames || !hostnames.some((hostname) => /forwardemail\.net$/g.test(hostname))) {
+    console.log('invalid hostname');
     res.status(403).end();
     return;
   }
@@ -42,11 +44,13 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   // Check mailbox exists
   const mailboxExists = await queryExecutor.checkMailboxExists(to);
   if (!mailboxExists) {
+    console.log('mailbox does not exist');
     res.status(404).json({
       error: 'Mailbox does not exist'
     });
     return;
   }
+  console.log('processing mail');
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({
