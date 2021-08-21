@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import ms from 'ms';
 import { JSDOM, DOMWindow } from 'jsdom';
 import createDOMPurify from 'dompurify';
+import cheerio from 'cheerio';
 
 import {
   encryptMessage,
@@ -68,8 +69,11 @@ export async function list (client: Client, alias: string, size: number = 50): P
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, mail: MailItem): Promise<void> {
   // Sanitize html body
-  const html: string = DOMPurify.sanitize(mail.body.html as string);
-  console.log(html);
+  let html: string = DOMPurify.sanitize(mail.body.html as string);
+  // Add _blank targets for all links
+  const $ = cheerio.load(html);
+  $('a').attr('target', '_blank');
+  html = $.html();
   // Overwrite existing html body
   const body = Object.assign({}, mail.body, {
     html,
