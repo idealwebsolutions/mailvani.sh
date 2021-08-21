@@ -74,6 +74,7 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
   const $ = cheerio.load(html);
   $('a').attr('target', '_blank');
   html = $.html();
+  console.log(html);
   // Overwrite existing html body
   const body = Object.assign({}, mail.body, {
     html,
