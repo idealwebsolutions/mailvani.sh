@@ -10,6 +10,8 @@ import {
 
 const reverseIp: Function = promisify(reverse);
 
+const STORAGE_LIMIT_QUOTA: number = parseInt(process.env.STORAGE_LIMIT_QUOTA, 10) || 10000000; // defaults to q10mb
+
 // Webhook should only be called from forwarding server
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -17,7 +19,6 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     res.status(405).end(`Method ${req.method} not allowed`);
     return;
   }
-  console.log(res);
   // Reveal remote address of webhook source 
   const remoteAddress: string | string[] | undefined = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
   if (!remoteAddress) {
@@ -51,7 +52,15 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     });
     return;
   }
-  console.log('processing mail');
+  // Check if mailbox has exceeded usage limit
+  const currentUsage = await queryExecutor.checkMailboxUsage(to);
+  if (currentUsage >= STORAGE_LIMIT_QUOTA) {
+    console.log('mailbox has exceeded storage limit quota');
+    res.status(403).json({
+      error: 'Mailbox has exceeded storage limit quota'
+    });
+    return;
+  }
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({

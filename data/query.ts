@@ -10,6 +10,7 @@ import {
   create,
   extend,
   exists,
+  usage,
   drop
 } from './queries/mailbox';
 
@@ -37,6 +38,10 @@ class QueryExecutor {
 
   public async checkMailboxExists (alias: string): Promise<boolean> {
     return await exists(this._client, alias);
+  }
+
+  public async checkMailboxUsage (alias: string): Promise<number> {
+    return await usage(this._client, alias);
   }
 
   public async renewMailbox (key: string): Promise<void> {

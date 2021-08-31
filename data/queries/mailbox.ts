@@ -81,6 +81,21 @@ export async function exists (client: Client, alias: string): Promise<boolean> {
   console.log(response);
   return response;
 };
+// Check mailbox data usage
+export async function usage (client: Client, alias: string): Promise<number> {
+  const computedAlias: string = computeShasum(alias, SALT);
+  const response: Response<number> = await client.query(
+    Select('usage',
+      Select('data',
+        Get(
+          Match(Index('known_aliases'), computedAlias)
+        )
+      )
+    )
+  );
+  console.log(response);
+  return response;
+};
 // Extends mailbox ttl by expiration
 // 1 TCO + 1 TWO
 export async function extend (client: Client, expiration: number, alias: string): Promise<void> {
