@@ -31,6 +31,7 @@ const {
   Lambda,
   If,
   Get,
+  Update,
   Exists,
   Match,
   Var,
@@ -74,14 +75,13 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
   const $ = cheerio.load(html);
   $('a').attr('target', '_blank');
   html = $.html();
-  console.log(html);
   // Overwrite existing html body
   const body = Object.assign({}, mail.body, {
     html,
   });
   const computedAlias: string = computeShasum(mail.to, SALT);
-  const currentTimestamp: dayjs.Dayjs = dayjs().add(ms('30m'), 'ms'); // default to 30m mail item expiration
-  const secret = await client.query(
+  const currentTimestamp: dayjs.Dayjs = dayjs().add(ms('15m'), 'ms'); // default to 15m mail item expiration
+  const secret: Response<string> = await client.query(
     Select('secret', 
       Select('data', 
         Get(
@@ -90,6 +90,43 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
       )
     )
   );
+  const currentUsage: Response<number> = await client.query(
+    Select('usage',
+      Select('data', 
+        Get(
+          Match(Index('known_aliases'), computedAlias)
+        )
+      )
+    )
+  );
+  console.log('usage: ' + currentUsage);
+  // TODO: count length of message and increment usage counter on mailbox doc
+  const encryptedMessage = encryptMessage(
+    Uint8Array.from(secret as Array<number>), 
+    {
+      from: mail.from,
+      to: mail.to,
+      date: mail.date.toISOString(),
+      subject: mail.subject,
+      body,
+      attachments: mail.attachments,
+    },
+  );
+  const updateUsageResponse: Response<object> = await client.query(
+    Update(
+      Select('ref',
+        Get(
+          Match(Index('known_aliases'), computedAlias)
+        )
+      ),
+      {
+        data: {
+          usage: (currentUsage as number) + encryptedMessage.length
+        }
+      }
+    )
+  );
+  console.log(updateUsageResponse);
   const response: Response<object> = await client.query(
     Create(
       Collection('mail'),
@@ -98,17 +135,7 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
           header: {
             to: Select('ref', Get(Match(Index('known_aliases'), computedAlias))),
           },
-          body: encryptMessage(
-            Uint8Array.from(secret as Array<number>), 
-            {
-              from: mail.from,
-              to: mail.to,
-              date: mail.date.toISOString(),
-              subject: mail.subject,
-              body,
-              attachments: mail.attachments,
-            }
-          )
+          body: encryptedMessage
         },
         ttl: ToTime(currentTimestamp.toDate().toISOString())
       }

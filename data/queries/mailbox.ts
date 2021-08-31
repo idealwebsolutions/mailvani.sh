@@ -42,7 +42,7 @@ export async function create (client: Client, domain: string, expiration: number
     throw new Error('Invalid key size');
   }
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
-  const id: string = await createSafeIdentifier(12);
+  const id: string = await createSafeIdentifier(10);
   const alias: string = `${id}@${domain}`;
   const keypair: BoxKeyPair = generateKeypair();
   const secret: Array<number> = Array.from(
@@ -59,6 +59,7 @@ export async function create (client: Client, domain: string, expiration: number
       { 
         data: {
           alias: computeShasum(alias, SALT),
+          usage: 0,
           secret
         },
         ttl: ToTime(currentTimestamp.toDate().toISOString()) 
