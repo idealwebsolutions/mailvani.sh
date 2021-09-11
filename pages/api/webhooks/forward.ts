@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { reverse } from 'dns';
 import { promisify } from 'util';
+import { Readable } from 'stream';
+import { streamToBuffer } from '@jorgeferrero/stream-to-buffer';
 
 import queryExecutor from '../../../data/query';
 import { 
@@ -61,6 +63,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     });
     return;
   }
+  const attachments = await preprocessAttachments(mail.attachments);
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({
@@ -72,7 +75,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
         plain: mail.text,
         html: mail.html,
       },
-      attachments: mail.attachments
+      attachments
     }) as MailItem);
   } catch (err) {
     console.error(err);
@@ -80,4 +83,16 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
     return;
   }
   res.status(200).end();
+}
+
+// Pre-process attachment (streams)
+async function preprocessAttachments (attachments) {
+  const processed = [];
+  for (const attachment for attachments) {
+    const data = await streamToBuffer(Readable.from(attachment.content.data));
+    processed.push(Object.assign({}, attachment, {
+      data
+    }));
+  }
+  return processed;
 }
