@@ -43,7 +43,7 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
   }
   // Parse incoming mail
   const mail: ParsedMail = req.body;
-  console.log(mail);
+  // console.log(mail);
   const to: string = mail.to.text;
   // Check mailbox exists
   const mailboxExists = await queryExecutor.checkMailboxExists(to);
@@ -88,8 +88,11 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 // Pre-process attachment (streams)
 async function preprocessAttachments (attachments) {
   const processed = [];
+  console.log(attachments[0].content.data)
   for (const attachment of attachments) {
-    const data = await streamToBuffer(Readable.from(attachment.content.data));
+    const stream = Readable.from(new Uint8Array(attachment.content.data));
+    console.log(stream)
+    const data = await streamToBuffer(stream);
     processed.push(Object.assign({}, attachment, {
       data
     }));
