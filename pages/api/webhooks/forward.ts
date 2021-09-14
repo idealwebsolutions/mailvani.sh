@@ -88,14 +88,17 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
 // Pre-process attachment (streams)
 async function preprocessAttachments (attachments) {
   const processed = [];
-  console.log(attachments[0].content.data)
+  // console.log(attachments[0].content.data)
   for (const attachment of attachments) {
-    const stream = Readable.from(new Uint8Array(attachment.content.data));
-    console.log(stream)
-    const data = await streamToBuffer(stream);
-    processed.push(Object.assign({}, attachment, {
-      data
-    }));
+    console.log(attachment);
+    console.log(Buffer.isBuffer(attachment.content));
+    // const stream = Readable.from(Buffer.from(attachment.content.data));
+    // console.log(stream)
+    // const data = await streamToBuffer(stream);
+    processed.push(attachment);
+    // processed.push(Object.assign({}, attachment, {
+    //  data
+    //}));
   }
   return processed;
 }
