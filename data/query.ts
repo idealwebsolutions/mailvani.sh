@@ -19,6 +19,7 @@ import {
   push,
   empty
 } from './queries/mail';
+import { pickFromArray } from '../utils/random';
 
 declare var FAUNADB_SECRET: string;
 declare var DOMAIN: string;
@@ -26,17 +27,17 @@ declare var EXPIRATION: string;
 
 const SECRET: string = (typeof process !== 'undefined' ? process.env.FAUNADB_SECRET : FAUNADB_SECRET) || ''; // Require SECRET
 
-if (!SECRET) {
-  throw new Error('FaunaDB secret required');
+if (!SECRET || !SECRET.length) {
+  throw new Error('FAUNADB_SECRET is required and must be defined');
 }
 
 class QueryExecutor {
   private _client: Client;
   private _expiration: number;
-  private _domain: string;
+  private _domain: string[];
 
-  constructor (domain: string = 'mailvani.sh', expiration: string = '10m') {
-    this._domain = domain;
+  constructor (domain: string, expiration: string = '30m') {
+    this._domain = domain.split(',');
     this._client = new Client({ 
       secret: SECRET,
       // @ts-expect-error
@@ -54,12 +55,17 @@ class QueryExecutor {
         return Promise.race([abortPromise, fetch(url, params)]);
       },
     });
-    this._expiration = ms(expiration) || 6000000;
+    this._expiration = ms(expiration);
+  }
+
+  // Defined expiration for all mailboxes
+  public get definedExpiration () {
+    return this._expiration;
   }
 
   // Mailbox specific queries
   public async createMailbox (publicKey: Uint8Array): Promise<Mailbox> {
-    return await create(this._client, this._domain, this._expiration, publicKey);
+    return await create(this._client, pickFromArray(this._domain), this._expiration, publicKey);
   }
 
   public async checkMailboxExists (alias: string): Promise<boolean> {
@@ -90,9 +96,21 @@ class QueryExecutor {
   }
 };
 
+const USABLE_DOMAINS: string = (typeof process !== 'undefined' ? process.env.DOMAIN : DOMAIN) || ''; // Require DOMAIN
+
+if (!USABLE_DOMAINS || !USABLE_DOMAINS.length) {
+  throw new Error('DOMAIN is required and must be defined');
+}
+
+const DEFINED_EXPIRATION: string = (typeof process !== 'undefined' ? process.env.EXPIRATION : EXPIRATION) || ''; // Require EXPIRATION
+
+if (!DEFINED_EXPIRATION || !DEFINED_EXPIRATION.length) {
+  throw new Error('EXPIRATION must be defined');
+}
+
 const queryExecutor: QueryExecutor = new QueryExecutor(
-  typeof process !== 'undefined' ? process.env.DOMAIN : DOMAIN,
-  typeof process !== 'undefined' ? process.env.EXPIRATION : EXPIRATION
+  USABLE_DOMAINS,
+  DEFINED_EXPIRATION
 );
 
 export default queryExecutor;
