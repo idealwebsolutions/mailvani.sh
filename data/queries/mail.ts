@@ -4,8 +4,6 @@ import {
 } from 'faunadb';
 import dayjs from 'dayjs';
 import ms from 'ms';
-import { JSDOM, DOMWindow } from 'jsdom';
-import createDOMPurify from 'dompurify';
 import cheerio from 'cheerio';
 
 import {
@@ -38,15 +36,13 @@ const {
   ToTime
 } = q;
 
-const SALT: string = process.env.GLOBAL_SALT || ''; // Require GLOBAL_SALT
+declare var GLOBAL_SALT: string;
+
+const SALT: string = (typeof process !== 'undefined' ? process.env.GLOBAL_SALT : GLOBAL_SALT) || ''; // Require GLOBAL_SALT
 
 if (!SALT) {
-  throw new Error('GLOBAL_SALT is required');
+  throw new Error('GLOBAL_SALT must be defined');
 }
-
-const window: DOMWindow = new JSDOM('').window;
-// @ts-expect-error
-const DOMPurify = createDOMPurify(window);
 
 // Lists all mail in the mailbox
 // 2 TCO + 2 TRO
@@ -69,8 +65,7 @@ export async function list (client: Client, alias: string, size: number = 50): P
 // Pushes mail to mailbox
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, mail: MailItem): Promise<void> {
-  // Sanitize html body
-  let html: string = DOMPurify.sanitize(mail.body.html as string);
+  let html: string = mail.body.html as string;
   // Add _blank targets for all links
   const $ = cheerio.load(html);
   $('a').attr('target', '_blank');
@@ -100,7 +95,6 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
     )
   );
   console.log('usage: ' + currentUsage);
-  // TODO: count length of message and increment usage counter on mailbox doc
   const encryptedMessage = encryptMessage(
     Uint8Array.from(secret as Array<number>), 
     {

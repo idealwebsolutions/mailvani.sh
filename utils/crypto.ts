@@ -16,7 +16,7 @@ import {
 } from 'tweetnacl-util';
 import { customAlphabet } from 'nanoid/async';
 
-const CUSTOM_ALPHABET = '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const CUSTOM_ALPHABET = '123456789abcdefghijklmnopqrstuvwxyz';
 
 // Initializes a new keypair
 export function generateKeypair (): BoxKeyPair {
@@ -52,8 +52,8 @@ export async function createSafeIdentifier (length: number = 12): Promise<string
   return await customAlphabet(CUSTOM_ALPHABET, length)();
 }
 // Computes shasum of a value
-export function computeShasum (data: string, salt: string, algo: string = 'sha256', digest: BinaryToTextEncoding = 'base64'): string {
+export function computeShasum (data: string, salt: string, algo: string = 'sha256', encoding: BinaryToTextEncoding = 'base64'): string {
   return createHash(algo, {
     salt
-  } as HashOptions).update(data).digest(digest);
+  } as HashOptions).update(data).digest(encoding);
 }

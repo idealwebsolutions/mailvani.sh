@@ -29,10 +29,12 @@ const {
   ToTime
 } = q;
 
-const SALT: string = process.env.GLOBAL_SALT || ''; // Require GLOBAL_SALT
+declare var GLOBAL_SALT: string;
+
+const SALT: string = (typeof process !== 'undefined' ? process.env.GLOBAL_SALT : GLOBAL_SALT) || ''; // Require GLOBAL_SALT
 
 if (!SALT) {
-  throw new Error('GLOBAL_SALT is required');
+  throw new Error('GLOBAL_SALT must be defined');
 }
 
 // Creates a new mailbox with a given expiration date

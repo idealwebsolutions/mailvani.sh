@@ -1,5 +1,19 @@
 export type Response<T> = any;
 
+export class ExpiredMailboxError extends Error {
+  constructor(message: string) {
+    super(message); // (1)
+    this.name = 'ExpiredMailboxError';
+  }
+};
+
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RateLimitError';
+  }
+};
+
 export interface QueryResult {
   readonly data: MailItem,
   readonly ref: any,
@@ -26,11 +40,11 @@ export interface MailItem {
     readonly plain: string,
     readonly html: boolean | string,
   },
-  readonly attachments: string[]
+  readonly attachments: object[]
 };
 
 export interface ParsedMail {
-  readonly attachments: string[],
+  readonly attachments: object[],
   readonly headers: object,
   readonly headerLines: object[],
   readonly text: string,
@@ -49,5 +63,5 @@ export interface ParsedMail {
   }
   readonly messageId: string,
   readonly html: boolean | string,
-  readonly raw: Buffer
+  readonly raw: any
 };
