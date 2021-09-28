@@ -1,6 +1,6 @@
 import { Client } from 'faunadb';
 import ms from 'ms';
-
+import isValidDomain from 'is-valid-domain';
 import {
   MailItem,
   Mailbox
@@ -34,10 +34,10 @@ if (!SECRET || !SECRET.length) {
 class QueryExecutor {
   private _client: Client;
   private _expiration: number;
-  private _domain: string[];
+  private _domains: string[];
 
-  constructor (domain: string, expiration: string = '30m') {
-    this._domain = domain.split(',');
+  constructor (domains: string[], expiration: string = '30m') {
+    this._domains = domains;
     this._client = new Client({ 
       secret: SECRET,
       // @ts-expect-error
@@ -59,13 +59,13 @@ class QueryExecutor {
   }
 
   // Defined expiration for all mailboxes
-  public get definedExpiration () {
+  public get definedExpiration (): number {
     return this._expiration;
   }
 
   // Mailbox specific queries
   public async createMailbox (publicKey: Uint8Array): Promise<Mailbox> {
-    return await create(this._client, pickFromArray(this._domain), this._expiration, publicKey);
+    return await create(this._client, pickFromArray(this._domains), this._expiration, publicKey);
   }
 
   public async checkMailboxExists (alias: string): Promise<boolean> {
@@ -94,6 +94,22 @@ class QueryExecutor {
     // await empty(this._client, key);
     await drop(this._client, key);
   }
+
+  public static ValidateConfiguration (domains: string, expiration: string | undefined): QueryExecutor {
+    const validated = domains.split(',').filter((domain) => domain.length && isValidDomain(domain));
+    if (!validated.length) {
+      throw new Error('No usable domains found');
+    }
+    if (typeof expiration === 'string') {
+      try {
+        ms(expiration);
+      } catch (err) {
+        throw new Error('Invalid expiration provided');
+      }
+    }
+    console.log(expiration);
+    return new QueryExecutor(validated, expiration);
+  }
 };
 
 const USABLE_DOMAINS: string = (typeof process !== 'undefined' ? process.env.DOMAIN : DOMAIN) || ''; // Require DOMAIN
@@ -102,13 +118,9 @@ if (!USABLE_DOMAINS || !USABLE_DOMAINS.length) {
   throw new Error('DOMAIN is required and must be defined');
 }
 
-const DEFINED_EXPIRATION: string = (typeof process !== 'undefined' ? process.env.EXPIRATION : EXPIRATION) || ''; // Require EXPIRATION
+const DEFINED_EXPIRATION: string | undefined = (typeof process !== 'undefined' ? process.env.EXPIRATION : undefined); // Require EXPIRATION
 
-if (!DEFINED_EXPIRATION || !DEFINED_EXPIRATION.length) {
-  throw new Error('EXPIRATION must be defined');
-}
-
-const queryExecutor: QueryExecutor = new QueryExecutor(
+const queryExecutor: QueryExecutor = QueryExecutor.ValidateConfiguration(
   USABLE_DOMAINS,
   DEFINED_EXPIRATION
 );
