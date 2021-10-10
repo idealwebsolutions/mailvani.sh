@@ -107,7 +107,6 @@ class QueryExecutor {
         throw new Error('Invalid expiration provided');
       }
     }
-    console.log(expiration);
     return new QueryExecutor(validated, expiration);
   }
 };

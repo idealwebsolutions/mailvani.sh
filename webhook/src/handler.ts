@@ -1,10 +1,7 @@
-// import { Readable } from 'stream';
-// import { streamToBuffer } from '@jorgeferrero/stream-to-buffer';
-
 import queryExecutor from '../../data/query';
 import { 
   MailItem, 
-  ParsedMail 
+  ParsedMail
 } from '../../data/types';
 
 declare var STORAGE_LIMIT_QUOTA: string;
@@ -56,7 +53,6 @@ export async function handleRequest(request: Request): Promise<Response> {
       status: 403
     });
   }
-  const attachments = await preprocessAttachments(mail.attachments);
   // Process mail
   try {
     await queryExecutor.processMail(Object.freeze({
@@ -68,7 +64,7 @@ export async function handleRequest(request: Request): Promise<Response> {
         plain: mail.text,
         html: mail.html,
       },
-      attachments
+      attachments: mail.attachments
     }) as MailItem);
   } catch (err) {
     console.error(err);
@@ -79,21 +75,4 @@ export async function handleRequest(request: Request): Promise<Response> {
   return new Response('Success', {
     status: 200
   });
-}
-
-// Pre-process attachment (streams)
-async function preprocessAttachments (attachments: object[]) {
-  const processed = [];
-  // console.log(attachments[0].content.data)
-  for (const attachment of attachments) {
-    console.log(attachment);
-    // const stream = Readable.from(Buffer.from(attachment.content.data));
-    // console.log(stream)
-    // const data = await streamToBuffer(stream);
-    processed.push(attachment);
-    // processed.push(Object.assign({}, attachment, {
-    //  data
-    //}));
-  }
-  return processed;
 }
