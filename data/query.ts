@@ -13,7 +13,6 @@ import {
   usage,
   drop
 } from './queries/mailbox';
-
 import {
   list,
   push,
@@ -82,7 +81,7 @@ class QueryExecutor {
 
   // Mail-specific queries
   public async processMail (mail: MailItem): Promise<void> {
-    await push(this._client, mail);
+    await push(this._client, this._expiration, mail);
   }
 
   public async listMail (key: string): Promise<Array<MailItem>> {

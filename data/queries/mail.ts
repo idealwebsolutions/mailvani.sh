@@ -64,7 +64,7 @@ export async function list (client: Client, alias: string, size: number = 50): P
 }
 // Pushes mail to mailbox
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
-export async function push (client: Client, mail: MailItem): Promise<void> {
+export async function push (client: Client, expiration: number, mail: MailItem): Promise<void> {
   let html: string = mail.body.html as string;
   // Add _blank targets for all links
   const $ = cheerio.load(html);
@@ -75,7 +75,7 @@ export async function push (client: Client, mail: MailItem): Promise<void> {
     html,
   });
   const computedAlias: string = computeShasum(mail.to, SALT);
-  const currentTimestamp: dayjs.Dayjs = dayjs().add(ms('15m'), 'ms'); // default to 15m mail item expiration
+  const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const secret: Response<string> = await client.query(
     Select('secret', 
       Select('data', 
