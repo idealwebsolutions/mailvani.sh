@@ -31,6 +31,25 @@ export interface NameAddressPair {
   address: string
 }
 
+interface TypedArray {
+  type: string,
+  data: Array<number>
+}
+
+export interface Attachment {
+  readonly filename: string,
+  readonly content: TypedArray,
+  path?: string,
+  href?: string,
+  httpHeaders?: object[],
+  contentType?: string,
+  contentDisposition: string,
+  cid?: string,
+  encoding?: string,
+  headers?: object[],
+  raw: string | Buffer | unknown
+}
+
 export interface MailItem {
   readonly from: Array<NameAddressPair>,
   readonly to: string,
@@ -40,11 +59,11 @@ export interface MailItem {
     readonly plain: string,
     readonly html: boolean | string,
   },
-  readonly attachments: object[]
+  readonly attachments: Attachment[]
 };
 
 export interface ParsedMail {
-  readonly attachments: object[],
+  readonly attachments: Attachment[],
   readonly headers: object,
   readonly headerLines: object[],
   readonly text: string,
