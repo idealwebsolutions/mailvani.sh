@@ -8,7 +8,6 @@ declare var STORAGE_LIMIT_QUOTA: string;
 declare var VALID_SOURCE_ADDRESSES: string;
 
 const VALID_WEBHOOK_SOURCES: string[] = VALID_SOURCE_ADDRESSES.split(',') || [];
-const LIMIT_QUOTA: number = parseInt(STORAGE_LIMIT_QUOTA || '10000000', 10); // defaults to 10mb
 
 export async function handleRequest(request: Request): Promise<Response> {
   if (request.method !== 'POST') {
@@ -47,7 +46,7 @@ export async function handleRequest(request: Request): Promise<Response> {
   }
   // Check if mailbox has exceeded usage limit
   const currentUsage = await queryExecutor.checkMailboxUsage(to);
-  if (currentUsage >= LIMIT_QUOTA) {
+  if (currentUsage >= queryExecutor.currentStorageLimit) {
     console.log('mailbox has exceeded storage limit quota');
     return new Response('Mailbox has exceeded storage limit quota', {
       status: 403
