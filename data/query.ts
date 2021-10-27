@@ -23,6 +23,7 @@ import { pickFromArray } from '../utils/random';
 declare var FAUNADB_SECRET: string;
 declare var DOMAIN: string;
 declare var EXPIRATION: string;
+declare var STORAGE_LIMIT_QUOTA: string | number;
 
 const SECRET: string = (typeof process !== 'undefined' ? process.env.FAUNADB_SECRET : FAUNADB_SECRET) || ''; // Require SECRET
 
@@ -33,9 +34,10 @@ if (!SECRET || !SECRET.length) {
 class QueryExecutor {
   private _client: Client;
   private _expiration: number;
+  private _storageLimit: number;
   private _domains: string[];
 
-  constructor (domains: string[], expiration: string = '30m') {
+  constructor (domains: string[], expiration: string = '30m', storageLimit: number = 10000000) {
     this._domains = domains;
     this._client = new Client({ 
       secret: SECRET,
@@ -55,11 +57,17 @@ class QueryExecutor {
       },
     });
     this._expiration = ms(expiration);
+    this._storageLimit = storageLimit;
   }
 
   // Defined expiration for all mailboxes
   public get definedExpiration (): number {
     return this._expiration;
+  }
+
+  // Defined storage limit for all mailboxes
+  public get currentStorageLimit (): number {
+    return this._storageLimit;
   }
 
   // Mailbox specific queries
@@ -94,7 +102,7 @@ class QueryExecutor {
     await drop(this._client, key);
   }
 
-  public static ValidateConfiguration (domains: string, expiration: string | undefined): QueryExecutor {
+  public static ValidateConfiguration (domains: string, expiration: string | undefined, limitQuota: string | number | undefined): QueryExecutor {
     const validated = domains.split(',').filter((domain) => domain.length && isValidDomain(domain));
     if (!validated.length) {
       throw new Error('No usable domains found');
@@ -106,7 +114,17 @@ class QueryExecutor {
         throw new Error('Invalid expiration provided');
       }
     }
-    return new QueryExecutor(validated, expiration);
+    if (typeof limitQuota === 'string') {
+      try {
+        limitQuota = parseInt(limitQuota, 10);
+      } catch (err) {
+        limitQuota = 0;
+      }
+      if (limitQuota <= 0) {
+        throw new RangeError('Invalid limit quota provided');
+      }
+    }
+    return new QueryExecutor(validated, expiration, limitQuota);
   }
 };
 
@@ -118,9 +136,12 @@ if (!USABLE_DOMAINS || !USABLE_DOMAINS.length) {
 
 const DEFINED_EXPIRATION: string | undefined = (typeof process !== 'undefined' ? process.env.EXPIRATION : undefined); // Require EXPIRATION
 
+const DEFINED_STORAGE_LIMIT_QUOTA: string | number | undefined = (typeof process !== 'undefined' ? process.env.STORAGE_LIMIT_QUOTA : STORAGE_LIMIT_QUOTA) || undefined;
+
 const queryExecutor: QueryExecutor = QueryExecutor.ValidateConfiguration(
   USABLE_DOMAINS,
-  DEFINED_EXPIRATION
+  DEFINED_EXPIRATION,
+  DEFINED_STORAGE_LIMIT_QUOTA
 );
 
 export default queryExecutor;
