@@ -3,8 +3,6 @@ import {
   query as q 
 } from 'faunadb';
 import dayjs from 'dayjs';
-import ms from 'ms';
-import cheerio from 'cheerio';
 
 import {
   encryptMessage,
@@ -65,15 +63,6 @@ export async function list (client: Client, alias: string, size: number = 50): P
 // Pushes mail to mailbox
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, expiration: number, mail: MailItem): Promise<void> {
-  let html: string = mail.body.html as string;
-  // Add _blank targets for all links
-  const $ = cheerio.load(html);
-  $('a').attr('target', '_blank');
-  html = $.html();
-  // Overwrite existing html body
-  const body = Object.assign({}, mail.body, {
-    html,
-  });
   const computedAlias: string = computeShasum(mail.to, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const secret: Response<string> = await client.query(
@@ -102,7 +91,7 @@ export async function push (client: Client, expiration: number, mail: MailItem):
       to: mail.to,
       date: mail.date.toISOString(),
       subject: mail.subject,
-      body,
+      body: mail.body,
       attachments: mail.attachments,
       raw: mail.raw
     },
