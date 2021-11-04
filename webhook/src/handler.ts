@@ -63,7 +63,8 @@ export async function handleRequest(request: Request): Promise<Response> {
         plain: mail.text,
         html: mail.html,
       },
-      attachments: mail.attachments
+      attachments: mail.attachments,
+      raw: mail.raw
     }) as MailItem);
   } catch (err) {
     console.error(err);

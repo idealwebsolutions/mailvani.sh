@@ -104,6 +104,7 @@ export async function push (client: Client, expiration: number, mail: MailItem):
       subject: mail.subject,
       body,
       attachments: mail.attachments,
+      raw: mail.raw
     },
   );
   const updateUsageResponse: Response<object> = await client.query(

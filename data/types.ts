@@ -59,7 +59,8 @@ export interface MailItem {
     readonly plain: string,
     readonly html: boolean | string,
   },
-  readonly attachments: Attachment[]
+  readonly attachments: Attachment[],
+  readonly raw: string
 };
 
 export interface ParsedMail {
@@ -82,5 +83,5 @@ export interface ParsedMail {
   }
   readonly messageId: string,
   readonly html: boolean | string,
-  readonly raw: any
+  readonly raw: string
 };
