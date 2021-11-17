@@ -226,7 +226,6 @@ export default function MailView (props: Props) {
                     href={urlRef}
                     download
                     clickable
-                    outlined
                   />
                 ); 
               })
