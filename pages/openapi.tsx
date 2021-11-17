@@ -62,6 +62,7 @@ export default function API () {
           <Typography color="textPrimary">API</Typography>
         </Breadcrumbs>
         <h1>API</h1>
+        <p>Coming soon...</p>
         </Container>
       </main>
     </div>
