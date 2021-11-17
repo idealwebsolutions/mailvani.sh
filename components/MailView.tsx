@@ -134,7 +134,6 @@ export default function MailView (props: Props) {
     );
   };
   if (!props.from.length) {
-    console.log('nonactive');
     mailPropsCtx.changeOpened(-1);
     return null;
   }
@@ -223,7 +222,7 @@ export default function MailView (props: Props) {
                     className={classes.attachment}
                     icon={icon}
                     label={attachment.filename}
-                    color="#2196f3"
+                    color="default"
                     href={urlRef}
                     download
                     clickable
