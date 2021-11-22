@@ -93,7 +93,7 @@ export default function MailList (props: Props) {
     <List component="nav" aria-label="inbox navigation">
       { 
         props.mail.map((mail: MailItem, index: number) => 
-          <Mail id={index} key={index} opened={props.opened.indexOf(index) > -1} {...mail} />
+          <Mail id={index} key={index} useDivider={index > 0 || index > (props.mail.length - 1)} opened={props.opened.indexOf(index) > -1} {...mail} />
         ).reverse()
       }
     </List>

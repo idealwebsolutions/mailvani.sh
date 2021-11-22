@@ -53,7 +53,8 @@ const useStyles = (isDarkTheme: boolean) => makeStyles((theme: Theme) => createS
 }));
 
 interface Props {
-  readonly id: number | string,
+  readonly id: number,
+  readonly useDivider: boolean,
   readonly from: Array<NameAddressPair>,
   readonly subject: string,
   readonly date: Date,
@@ -70,7 +71,7 @@ export default function Mail (props: Props) {
   const classes = useStyles(themeCtx.isDarkTheme)();
   
   return (
-    <ListItem button divider className={props.opened ? classes.openedState : classes.newState} onClick={() => mailPropsCtx.changeOpened(props.id as number)}>
+    <ListItem button divider={props.useDivider} className={props.opened ? classes.openedState : classes.newState} onClick={() => mailPropsCtx.changeOpened(props.id as number)}>
       <ListItemAvatar>
         <Avatar>{ props.from[0].name[0] }</Avatar>
       </ListItemAvatar>
