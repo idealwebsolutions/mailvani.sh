@@ -142,7 +142,7 @@ export default function MailView (props: Props) {
     return () => {
       for (const attachmentRef of attachmentRefs) {
         URL.revokeObjectURL(attachmentRef);
-        console.log('detached attachment ref');
+        // console.log('detached attachment ref');
       }
     }
   });
