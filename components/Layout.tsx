@@ -157,9 +157,6 @@ export default function Layout (props: Props) {
       </div>
       <nav className={classes.bottomNav}>
         <List>
-        <ListItem style={{ color: 'inherit' }} component={Link} href="openapi" shallow button>
-            <ListItemText>API</ListItemText>
-          </ListItem>
           <ListItem style={{ color: 'inherit' }} component={Link} href="faq" shallow button>
             <ListItemText>FAQ</ListItemText>
           </ListItem>
