@@ -32,10 +32,11 @@ import {
   MailItem 
 } from '../data/types';
 
-import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "@fontsource/quicksand/700.css";
 
 interface Keypair {
   readonly publicKey: Uint8Array,
@@ -133,8 +134,6 @@ function App({ Component, pageProps }: AppProps) {
       <Head>
         <title>mailvani.sh - Disposable mailbox with encryption</title>
         <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" />
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
         <meta property="og:title" content="mailvani.sh - Disposable mailbox with encryption" />
       </Head>
