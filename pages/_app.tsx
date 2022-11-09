@@ -32,6 +32,11 @@ import {
   MailItem 
 } from '../data/types';
 
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+
 interface Keypair {
   readonly publicKey: Uint8Array,
   readonly secretKey: Uint8Array,
