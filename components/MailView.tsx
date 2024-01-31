@@ -137,7 +137,6 @@ export default function MailView (props: Props) {
     mailPropsCtx.changeOpened(-1);
     return null;
   }
-  // console.log('height ' + height);
   useEffect(() => {
     return () => {
       for (const attachmentRef of attachmentRefs) {
@@ -240,8 +239,8 @@ export default function MailView (props: Props) {
                   {text}
                   <br />
                 </>
-              )) : 
-              <Frame id="email-content" initialContent={props.body.html || props.body.plain} head={<style>{frameStyles}</style>} style={{ height: height + 'px' }} className={classes.frameOptions}>
+              )) :  
+              <Frame id="email-content" initialContent={props.body.html || `<!DOCTYPE html><html><head></head><body><div>${props.body.plain}</div></body></html>`} head={<style>{frameStyles}</style>} style={{ height: height + 'px' }} className={classes.frameOptions}>
                 <FrameContextConsumer>
                 {
                   ({document, window}) => {
