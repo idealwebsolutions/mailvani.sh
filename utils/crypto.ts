@@ -11,7 +11,6 @@ import {
 } from 'tweetnacl-util';
 import { customAlphabet } from 'nanoid/async';
 import { Sha256 } from '@aws-crypto/sha256-browser';
-import { Buffer } from 'node:buffer';
 
 const CUSTOM_ALPHABET = '123456789abcdefghijklmnopqrstuvwxyz';
 
@@ -53,5 +52,5 @@ export async function computeAlias (data: string, salt: string): Promise<string>
   const hash = new Sha256(salt);
   hash.update(data);
   const u8 = await hash.digest();
-  return Buffer.from(u8).toString('base64');
+  return btoa(String.fromCharCode.apply(null, u8)); // Buffer.from(u8).toString('base64');
 }
