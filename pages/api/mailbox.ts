@@ -9,7 +9,10 @@ import {
 } from '../../middleware/token';
 import rateLimit from '../../middleware/limit';
 import checkSupported from '../../middleware/supported';
-import queryExecutor from '../../data/query';
+import { 
+  ServerConfiguration, 
+  createQueryExecutor
+} from '../../data/query';
 
 import {
   MailItem,
@@ -21,6 +24,12 @@ const JWT_SECRET: string = process.env.JWT_SECRET || '';
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is required');
 }
+
+const queryExecutor = createQueryExecutor(process.env.QUERY_CLIENT_ACCESS_SECRET, process.env.GLOBAL_SALT, {
+  domains: process.env.DOMAINS,
+  expiration: process.env.EXPIRATION,
+  storageLimit: process.env.STORAGE_LIMIT_QUOTA
+} as ServerConfiguration);
 
 const EXPIRATION: number = queryExecutor.definedExpiration;
 const STORAGE_LIMIT: number = queryExecutor.currentStorageLimit;

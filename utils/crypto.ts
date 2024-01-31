@@ -11,6 +11,7 @@ import {
 } from 'tweetnacl-util';
 import { customAlphabet } from 'nanoid/async';
 import { Sha256 } from '@aws-crypto/sha256-browser';
+import { Buffer } from 'node:buffer';
 
 const CUSTOM_ALPHABET = '123456789abcdefghijklmnopqrstuvwxyz';
 

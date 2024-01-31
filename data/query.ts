@@ -20,27 +20,22 @@ import {
 } from './queries/mail';
 import { pickFromArray } from '../utils/random';
 
-declare var FAUNADB_SECRET: string;
-declare var DOMAIN: string;
-declare var EXPIRATION: string;
-declare var STORAGE_LIMIT_QUOTA: string | number;
-
-const SECRET: string = (typeof process !== 'undefined' ? process.env.FAUNADB_SECRET : FAUNADB_SECRET) || ''; // Require SECRET
-
-if (!SECRET || !SECRET.length) {
-  throw new Error('FAUNADB_SECRET is required and must be defined');
+export interface ServerConfiguration {
+  domains: string | string[];
+  expiration: string | number | undefined;
+  storageLimit: string | number | undefined;
 }
 
 class QueryExecutor {
+  private _salt: string;
   private _client: Client;
   private _expiration: number;
   private _storageLimit: number;
   private _domains: string[];
 
-  constructor (domains: string[], expiration: string = '30m', storageLimit: number = 10000000) {
-    this._domains = domains;
+  constructor (queryClientSecret: string, salt: string, parsedConfig: ServerConfiguration) {
     this._client = new Client({ 
-      secret: SECRET,
+      secret: queryClientSecret,
       // @ts-expect-error
       fetch: (url: RequestInfo, params: RequestInit | undefined) => {
         if (!params) {
@@ -56,8 +51,10 @@ class QueryExecutor {
         return Promise.race([abortPromise, fetch(url, params)]);
       },
     });
-    this._expiration = ms(expiration);
-    this._storageLimit = storageLimit;
+    this._salt = salt;
+    this._domains = parsedConfig.domains as string[];
+    this._expiration = parsedConfig.expiration as number || ms('30m');
+    this._storageLimit = parsedConfig.storageLimit as number;
   }
 
   // Defined expiration for all mailboxes
@@ -72,76 +69,74 @@ class QueryExecutor {
 
   // Mailbox specific queries
   public async createMailbox (publicKey: Uint8Array): Promise<Mailbox> {
-    return await create(this._client, pickFromArray(this._domains), this._expiration, publicKey);
+    const setup = await create(this._client, pickFromArray(this._domains), this._expiration, publicKey);
+    return await setup(this._salt);
   }
 
   public async checkMailboxExists (alias: string): Promise<boolean> {
-    return await exists(this._client, alias);
+    return await exists(this._client, alias)(this._salt);
   }
 
   public async checkMailboxUsage (alias: string): Promise<number> {
-    return await usage(this._client, alias);
+    return await usage(this._client, alias)(this._salt);
   }
 
   public async renewMailbox (key: string): Promise<void> {
-    await extend(this._client, this._expiration, key);
+    await extend(this._client, this._expiration, key)(this._salt);
   }
 
   // Mail-specific queries
   public async processMail (mail: MailItem): Promise<void> {
-    await push(this._client, this._expiration, mail);
+    await push(this._client, this._expiration, mail)(this._salt);
   }
 
   public async listMail (key: string): Promise<Array<MailItem>> {
-    return await list(this._client, key);
+    return await list(this._client, key)(this._salt);
   }
 
   // Combined queries
   public async destroyAll (key: string): Promise<void> {
     // await empty(this._client, key);
-    await drop(this._client, key);
+    await drop(this._client, key)(this._salt);
   }
 
-  public static ValidateConfiguration (domains: string, expiration: string | undefined, limitQuota: string | number | undefined): QueryExecutor {
-    const validated = domains.split(',').filter((domain) => domain.length && isValidDomain(domain));
-    if (!validated.length) {
+  public static ParseConfiguration (serverConfiguration: ServerConfiguration): ServerConfiguration {
+    serverConfiguration.domains = (serverConfiguration.domains as string || '').split(',').filter((domain: string) => domain.length && isValidDomain(domain));
+    
+    if (!serverConfiguration.domains.length) {
       throw new Error('No usable domains found');
     }
-    if (typeof expiration === 'string') {
+    
+    if (typeof serverConfiguration.expiration === 'string') {
       try {
-        ms(expiration);
+        serverConfiguration.expiration = ms(serverConfiguration.expiration as string);
       } catch (err) {
         throw new Error('Invalid expiration provided');
       }
     }
-    if (typeof limitQuota === 'string') {
+    
+    if (typeof serverConfiguration.storageLimit === 'string') {
       try {
-        limitQuota = parseInt(limitQuota, 10);
+        serverConfiguration.storageLimit = parseInt(serverConfiguration.storageLimit as string, 10);
       } catch (err) {
-        limitQuota = 0;
+        serverConfiguration.storageLimit = 10000000;
       }
-      if (limitQuota <= 0) {
-        throw new RangeError('Invalid limit quota provided');
+      if (serverConfiguration.storageLimit <= 0) {
+        throw new RangeError('Invalid storage limit quota provided: Must be greater than zero');
       }
     }
-    return new QueryExecutor(validated, expiration, limitQuota);
+    
+    return serverConfiguration;
   }
 };
 
-const USABLE_DOMAINS: string = (typeof process !== 'undefined' ? process.env.DOMAIN : DOMAIN) || ''; // Require DOMAIN
-
-if (!USABLE_DOMAINS || !USABLE_DOMAINS.length) {
-  throw new Error('DOMAIN is required and must be defined');
-}
-
-const DEFINED_EXPIRATION: string | undefined = (typeof process !== 'undefined' ? process.env.EXPIRATION : undefined); // Require EXPIRATION
-
-const DEFINED_STORAGE_LIMIT_QUOTA: string | number | undefined = (typeof process !== 'undefined' ? process.env.STORAGE_LIMIT_QUOTA : STORAGE_LIMIT_QUOTA) || undefined;
-
-const queryExecutor: QueryExecutor = QueryExecutor.ValidateConfiguration(
-  USABLE_DOMAINS,
-  DEFINED_EXPIRATION,
-  DEFINED_STORAGE_LIMIT_QUOTA
-);
-
-export default queryExecutor;
+export function createQueryExecutor (queryClientSecret: string | undefined, salt: string | undefined, serverConfig: ServerConfiguration): QueryExecutor {
+  if (!queryClientSecret) {
+    throw new Error('Query Client Secret must be defined');
+  }
+  if (!salt) {
+    throw new Error('Salt must be defined');
+  }
+  const parsedConfig: ServerConfiguration = QueryExecutor.ParseConfiguration(serverConfig);
+  return new QueryExecutor(queryClientSecret, salt, parsedConfig);
+};
