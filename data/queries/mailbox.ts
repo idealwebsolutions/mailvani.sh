@@ -13,7 +13,7 @@ import {
   generateKeypair,
   computeSecret,
   createSafeIdentifier,
-  computeShasum,
+  computeAlias,
 } from '../../utils/crypto';
 
 const {
@@ -54,13 +54,14 @@ export async function create (client: Client, domain: string, expiration: number
     alias,
     publicKey: Array.from(keypair.publicKey as Uint8Array),
   });
+  const computedAlias: string = await computeAlias(alias, SALT);
   // Craft query to create new document in collection with ttl
   const response: Response<object> = await client.query(
     Create(
       Collection('mailboxes'),
       { 
         data: {
-          alias: computeShasum(alias, SALT),
+          alias: computedAlias,
           usage: 0,
           secret
         },
@@ -74,7 +75,7 @@ export async function create (client: Client, domain: string, expiration: number
 // Check to see if mailbox exists in store
 // 1 TCO + 1 TRO
 export async function exists (client: Client, alias: string): Promise<boolean> {
-  const computedAlias: string = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const response: Response<boolean> = await client.query(
     Exists(
       Match(Index('known_aliases'), computedAlias)
@@ -85,7 +86,7 @@ export async function exists (client: Client, alias: string): Promise<boolean> {
 };
 // Check mailbox data usage
 export async function usage (client: Client, alias: string): Promise<number> {
-  const computedAlias: string = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const response: Response<number> = await client.query(
     Select('usage',
       Select('data',
@@ -101,7 +102,7 @@ export async function usage (client: Client, alias: string): Promise<number> {
 // Extends mailbox ttl by expiration
 // 1 TCO + 1 TWO
 export async function extend (client: Client, expiration: number, alias: string): Promise<void> {
-  const computedAlias: string = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const response: Response<object> = await client.query(
     Update(
@@ -120,7 +121,7 @@ export async function extend (client: Client, expiration: number, alias: string)
 // Destroys an existing mailbox
 // 1 TCO + ?
 export async function drop (client: Client, alias: string): Promise<void> {
-  const computedAlias: string = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const response: Response<object> = await client.query(
     Delete(
       Select('ref', 

@@ -1,9 +1,4 @@
 import { 
-  BinaryToTextEncoding, 
-  createHash,
-  HashOptions
-} from 'crypto';
-import { 
   box, 
   BoxKeyPair, 
   randomBytes 
@@ -15,6 +10,7 @@ import {
   decodeBase64
 } from 'tweetnacl-util';
 import { customAlphabet } from 'nanoid/async';
+import { Sha256 } from '@aws-crypto/sha256-browser';
 
 const CUSTOM_ALPHABET = '123456789abcdefghijklmnopqrstuvwxyz';
 
@@ -51,9 +47,10 @@ export function decryptMessage (secret: Uint8Array, encryptedMessage: string): a
 export async function createSafeIdentifier (length: number = 12): Promise<string> {
   return await customAlphabet(CUSTOM_ALPHABET, length)();
 }
-// Computes shasum of a value
-export function computeShasum (data: string, salt: string, algo: string = 'sha256', encoding: BinaryToTextEncoding = 'base64'): string {
-  return createHash(algo, {
-    salt
-  } as HashOptions).update(data).digest(encoding);
+// Computes alias based on secret+data
+export async function computeAlias (data: string, salt: string): Promise<string> {
+  const hash = new Sha256(salt);
+  hash.update(data);
+  const u8 = await hash.digest();
+  return Buffer.from(u8).toString('base64');
 }

@@ -85,7 +85,7 @@ export default function About() {
             <Typography>
               Many providers allow temporary email to live for as long as you keep your account. There are <strong>no long-term accounts</strong> or data stored long term, 
               you simply are given a <strong>read-only encrypted mailbox</strong> with a <strong>30 minute lifespan</strong> to use as you wish. Mail received only lasts for as long as the mailbox exists 
-              and is deleted in encrypted form on our end. The advantage here is that the mail received remains private and only viewable by you, from source to destination since you own the keys. 
+              and is deleted in encrypted form on our end. The advantage here is that the mail received remains temporary, private and only viewable by you. If you need something temporary for testing purposes or don't wish to give away your real email to third parties, this service may be for you.  
               You can always review the code yourself here.
             </Typography>
           </AccordionDetails>
@@ -96,7 +96,7 @@ export default function About() {
           </AccordionSummary>
           <AccordionDetails>
             <Typography>
-              All mail received is read only and encrypted at rest and in transit. This means that mail received is forwarded by our upstream service and is then 
+              All mail received is considered read only and encrypted only at rest and in transit. This means that mail received is forwarded by our upstream service unencrypted and is then 
               encrypted by a key only <strong>you</strong> have access to. This key remains in your possession for as long as the session is active and is recreated every time the mailbox expires. Feel free
               to audit the code yourself if you're curious.
             </Typography>

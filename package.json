@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@aws-crypto/sha256-browser": "^5.2.0",
     "@fontsource/quicksand": "^4.5.11",
     "@fontsource/roboto": "^4.5.8",
     "@hcaptcha/react-hcaptcha": "^0.3.8",

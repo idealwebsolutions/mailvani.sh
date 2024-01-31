@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 
 import {
   encryptMessage,
-  computeShasum
+  computeAlias
 } from '../../utils/crypto';
 
 import {
@@ -45,7 +45,7 @@ if (!SALT) {
 // Lists all mail in the mailbox
 // 2 TCO + 2 TRO
 export async function list (client: Client, alias: string, size: number = 50): Promise<Array<MailItem>> {
-  const computedAlias = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const response: Response<object> = await client.query(
     Map(
       Paginate(
@@ -63,7 +63,7 @@ export async function list (client: Client, alias: string, size: number = 50): P
 // Pushes mail to mailbox
 // (1 TCO + 1 TRO) + (1 TWO per 1kb)
 export async function push (client: Client, expiration: number, mail: MailItem): Promise<void> {
-  const computedAlias: string = computeShasum(mail.to, SALT);
+  const computedAlias: string = await computeAlias(mail.to, SALT);
   const currentTimestamp: dayjs.Dayjs = dayjs().add(expiration, 'ms');
   const secret: Response<string> = await client.query(
     Select('secret', 
@@ -130,7 +130,7 @@ export async function push (client: Client, expiration: number, mail: MailItem):
 // Deletes all mail associated with alias
 // 2 TCO + 2 TRO
 export async function empty (client: Client, alias: string): Promise<void> {
-  const computedAlias: string = computeShasum(alias, SALT);
+  const computedAlias: string = await computeAlias(alias, SALT);
   const response: Response<object> = await client.query(
     Foreach(
       Paginate(
