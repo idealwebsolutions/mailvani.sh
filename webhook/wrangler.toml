@@ -1,12 +1,12 @@
 name = "webhook"
-type = "javascript"
-zone_id = ""
-account_id = ""
-route = ""
+type = "typescript"
 workers_dev = true
 compatibility_date = "2021-09-25"
+compatibility_flags = [ "nodejs_compat" ]
 
 [build]
-command = "npm install && npm run build"
+command = "NODE_OPTIONS=--openssl-legacy-provider npm install && NODE_OPTIONS=--openssl-legacy-provider npm run build"
 [build.upload]
-format = "service-worker"
+format = "modules"
+dir = "./src"
+main = "./index.ts"
