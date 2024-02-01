@@ -14,7 +14,7 @@ import {
   sourceMatchesHostname
 } from '../../utils/security';
 
-const ALLOWED_SOURCE_HOSTS: string | string[] = process.env.ALLOWED_SOURCE_HOSTS;
+const ALLOWED_SOURCE_HOSTS: string = process.env.ALLOWED_SOURCE_HOSTS;
 
 const queryExecutor = createQueryExecutor(process.env.QUERY_CLIENT_ACCESS_SECRET, process.env.GLOBAL_SALT, {
   domains: process.env.DOMAINS,
