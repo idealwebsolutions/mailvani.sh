@@ -36,7 +36,7 @@ async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): P
   if (!remoteAddress) {
     return res.status(500).send('Internal server error');
   }
-  const matches: boolean = await sourceMatchesHostname(remoteAddress, ALLOWED_SOURCE_HOSTS.split(','));
+  const matches: boolean = await sourceMatchesHostname(remoteAddress as string, ALLOWED_SOURCE_HOSTS.split(','));
   if (!matches) {
     return res.status(401).send('Not authorized');
   }
