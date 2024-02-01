@@ -20,7 +20,7 @@ const gatewayHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): Promise<void> {
   // Reveal remote address of webhook source 
-  const remoteAddress: string | null = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
+  const remoteAddress: string | string[] = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
   if (!remoteAddress) {
     return res.status(500).send('Internal server error');
   }
