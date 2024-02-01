@@ -50,7 +50,7 @@ export function list (client: Client, alias: string, size: number = 50) {
         Lambda('ref', Get(Var('ref')))
       )
     );
-    console.log(response);
+    // console.log(response);
     return response.data.map((mail: QueryResult) => mail.data.body);
   };
 }
@@ -105,7 +105,7 @@ export function push (client: Client, expiration: number, mail: MailItem) {
         }
       )
     );
-    console.log(updateUsageResponse);
+    // console.log(updateUsageResponse);
     const response: Response<object> = await client.query(
       Create(
         Collection('mail'),
@@ -120,7 +120,7 @@ export function push (client: Client, expiration: number, mail: MailItem) {
         }
       )
     );
-    console.log(response);
+    // console.log(response);
   };
 }
 // Deletes all mail associated with alias
@@ -136,6 +136,6 @@ export function empty (client: Client, alias: string) {
         Lambda('ref', Delete(Var('ref')))
       )
     );
-    console.log(response);
+    // console.log(response);
   };
 }
