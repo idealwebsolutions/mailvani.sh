@@ -3,6 +3,10 @@ import {
   ServerConfiguration, 
   createQueryExecutor
 } from '../../data/query';
+import { 
+  MailItem, 
+  ParsedMail
+} from '../../data/types';
 
 const queryExecutor = createQueryExecutor(process.env.QUERY_CLIENT_ACCESS_SECRET, process.env.GLOBAL_SALT, {
   domains: process.env.DOMAINS,
