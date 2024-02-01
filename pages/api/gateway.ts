@@ -28,6 +28,7 @@ async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): P
   if (!remoteAddress) {
     return res.status(500).send('Internal server error');
   }
+  console.log(req.headers['origin']);
   console.log(remoteAddress);
   /*if (VALID_WEBHOOK_SOURCES.indexOf(remoteAddress) === -1) {
     console.log('invalid hostname');
@@ -36,7 +37,6 @@ async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): P
     });
   }*/
   // Parse incoming mail
-  console.log(req.body);
   const mail: ParsedMail = req.body;
   const to: string = mail.to.text;
   // Check mailbox exists
