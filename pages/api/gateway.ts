@@ -32,8 +32,8 @@ async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): P
     });
   }*/
   // Parse incoming mail
-  console.log(request.body);
-  const mail: ParsedMail = request.body;
+  console.log(req.body);
+  const mail: ParsedMail = req.body;
   const to: string = mail.to.text;
   // Check mailbox exists
   const mailboxExists = await queryExecutor.checkMailboxExists(to);
