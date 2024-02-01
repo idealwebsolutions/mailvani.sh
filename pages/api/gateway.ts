@@ -1,12 +1,20 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+
 import {
   ServerConfiguration, 
   createQueryExecutor
 } from '../../data/query';
+
 import { 
   MailItem, 
   ParsedMail
 } from '../../data/types';
+
+import {
+  sourceMatchesHostname
+} from '../../utils/security';
+
+const ALLOWED_SOURCE_HOSTS: string | string[] = process.env.ALLOWED_SOURCE_HOSTS;
 
 const queryExecutor = createQueryExecutor(process.env.QUERY_CLIENT_ACCESS_SECRET, process.env.GLOBAL_SALT, {
   domains: process.env.DOMAINS,
@@ -23,29 +31,25 @@ const gatewayHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 };
 
 async function handleIncomingMail (req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  // Reveal remote address of webhook source 
-  const remoteAddress: string | string[] = req.headers['x-forwarded-for'] || req.headers['x-real-ip'];
+  // Reveal remote address invoking this route
+  const remoteAddress: string | string[] = req.headers['x-real-ip'] || req.headers['x-vercel-forwarded-for'];
   if (!remoteAddress) {
     return res.status(500).send('Internal server error');
   }
-  console.log(req.headers);
-  console.log(remoteAddress);
-  /*if (VALID_WEBHOOK_SOURCES.indexOf(remoteAddress) === -1) {
-    console.log('invalid hostname');
-    return new Response('Not authorized', {
-      status: 401
-    });
-  }*/
+  const matches: boolean = await sourceMatchesHostnames(remoteAddress, ALLOWED_SOURCE_HOSTS.split(','));
+  if (!matches) {
+    return res.status(401).send('Not authorized');
+  }
   // Parse incoming mail
   const mail: ParsedMail = req.body;
   const to: string = mail.to.text;
   // Check mailbox exists
-  const mailboxExists = await queryExecutor.checkMailboxExists(to);
+  const mailboxExists: boolean = await queryExecutor.checkMailboxExists(to);
   if (!mailboxExists) {
     return res.status(404).send('Mailbox does not exist');
   }
   // Check if mailbox has exceeded usage limit
-  const currentUsage = await queryExecutor.checkMailboxUsage(to);
+  const currentUsage: number = await queryExecutor.checkMailboxUsage(to);
   if (currentUsage >= queryExecutor.currentStorageLimit) {
     return res.status(403).send('Mailbox has exceeded storage limit quota');
   }
