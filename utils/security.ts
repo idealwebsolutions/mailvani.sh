@@ -1,4 +1,4 @@
-const { reverse } from 'dns/promises';
+import { reverse } from 'dns/promises';
 
 export async function sourceMatchesHostname(address: string, hostnames: string[]): Promise<boolean> {
   let reversed: string[];
