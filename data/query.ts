@@ -53,7 +53,7 @@ class QueryExecutor {
     });
     this._salt = salt;
     this._domains = parsedConfig.domains as string[];
-    this._expiration = parsedConfig.expiration as number || ms('30m');
+    this._expiration = parsedConfig.expiration as number;
     this._storageLimit = parsedConfig.storageLimit as number;
   }
 
@@ -111,8 +111,14 @@ class QueryExecutor {
       try {
         serverConfiguration.expiration = ms(serverConfiguration.expiration as string);
       } catch (err) {
-        throw new Error('Invalid expiration provided');
+        serverConfiguration.expiration = ms('30m');
       }
+    } else if (typeof serverConfiguration.expiration === 'number') {
+      if (serverConfiguration.expiration <= 0) {
+        serverConfiguration.expiration = ms('30m');
+      }
+    } else if (typeof serverConfiguration.expiration === 'undefined') {
+      serverConfiguration.expiration = ms('30m');
     }
     
     if (typeof serverConfiguration.storageLimit === 'string') {
@@ -122,8 +128,14 @@ class QueryExecutor {
         serverConfiguration.storageLimit = 10000000;
       }
       if (serverConfiguration.storageLimit <= 0) {
-        throw new RangeError('Invalid storage limit quota provided: Must be greater than zero');
+        serverConfiguration.storageLimit = 10000000;
       }
+    } else if (typeof serverConfiguration.storageLimit === 'number') { 
+      if (serverConfiguration.storageLimit <= 0) {
+        serverConfiguration.storageLimit = 10000000;
+      }
+    } else if (typeof serverConfiguration.storageLimit === 'undefined') {
+      serverConfiguration.storageLimit = 10000000;
     }
     
     return serverConfiguration;
